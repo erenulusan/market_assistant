@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Assistant Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #9481b6 0, #020617 45%, #1d233f 100%);
+      color: #213661;
+    }
+
+    .page-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .app-container {
+      display: flex;
+      flex: 1;
+      max-width: 1160px;
+      gap: 10px;
+    }
+
+    .panel {
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(100, 121, 179, 0.96);
+      border: 1px solid #12305a;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* Sol: Chat alanı */
+    .chat-container {
+      flex: 2;
+      min-width: 0;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #266bcc;
+      background: linear-gradient(to right, #020617, #111827);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .chat-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chat-header-title {
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-header-title span.icon {
+      font-size: 20px;
+    }
+
+    .chat-header-subtitle {
+      font-size: 12px;
+      color: #5179be;
+    }
+
+    .mode-indicator {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 118, 110, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #bbf7d0;
+      white-space: nowrap;
+    }
+
+    .mode-indicator span.tag {
+      font-weight: 600;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      max-width: 80%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .message.user {
+      background: #a6b7da;
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 0;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+    }
+
+    .message.bot {
+      background: #020617;
+      color: #e5e7eb;
+      margin-right: auto;
+      border-bottom-left-radius: 0;
+      border: 1px solid #1f2937;
+    }
+
+    .message.bot.loading {
+      opacity: 0.8;
+      font-style: italic;
+    }
+
+    /* Ürün kartları + ingredient seçimi */
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .product-card {
+      background: #020617;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      padding: 8px;
+      width: 230px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .product-card h4 {
+      margin: 0 0 4px 0;
+      font-size: 14px;
+      color: #e5e7eb;
+    }
+
+    .product-card p {
+      margin: 2px 0;
+      color: #9ca3af;
+    }
+
+    .product-card button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 6px;
+      border: none;
+      border-radius: 8px;
+      background: #16a34a;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .product-card button:hover {
+      background: #15803d;
+    }
+
+    .ingredient-select {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      font-size: 13px;
+    }
+
+    .ingredient-select-title {
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #e5e7eb;
+    }
+
+    .ingredient-list {
+      max-height: 160px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+      padding-right: 4px;
+    }
+
+    .ingredient-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      color: #cbd5f5;
+    }
+
+    .ingredient-item span {
+      font-size: 13px;
+    }
+
+    .ingredient-select button {
+      width: 100%;
+      padding: 7px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .ingredient-select button:hover {
+      background: #1d4ed8;
+    }
+
+    /* Input alanı */
+    .chat-input-area {
+      padding: 10px;
+      border-top: 1px solid #1f2937;
+      display: flex;
+      gap: 8px;
+      background: #020617;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 9px 10px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    .chat-input-area input::placeholder {
+      color: #6b7280;
+    }
+
+    .chat-input-area button {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      font-weight: 500;
+    }
+
+    .btn-primary[disabled] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .btn-primary:not([disabled]):hover {
+      background: #1d4ed8;
+    }
+
+    /* Sağ: Sepet */
+    .cart-container {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .cart-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1f2937;
+      font-weight: 500;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .cart-header span.sub {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 400;
+    }
+
+    .cart-body {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+
+    .cart-item {
+      border-bottom: 1px solid #1f2937;
+      padding: 6px 0;
+    }
+
+    .cart-item-title {
+      font-weight: 500;
+    }
+
+    .cart-footer {
+      padding: 10px 16px;
+      border-top: 1px solid #1f2937;
+      background: #020617;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .cart-empty {
+      color: #6b7280;
+      font-style: italic;
+    }
+
+    .btn-analyze {
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #0f766e;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .btn-analyze:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+
+    .btn-analyze:not(:disabled):hover {
+      background: #115e59;
+    }
+
+    /* Küçük ekranlar için */
+    @media (max-width: 840px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .cart-container {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="app-container">
+      <!-- Chat Bölümü -->
+      <div class="chat-container panel">
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="chat-header-title">
+              <span class="icon">🛒</span>
+              <span>Market Assistant</span>
+            </div>
+            <div class="chat-header-subtitle">
+              Tek cümleyle alışverişini ya da yemeğini anlat, gerisini ben halledeyim.
+            </div>
+          </div>
+
+          <div id="mode-indicator" class="mode-indicator">
+            <span>Mod:</span>
+            <span class="tag">–</span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="chat-input-area">
+          <input
+            id="chat-input"
+            type="text"
+            autocomplete="off"
+            placeholder="Marketten ya da mutfaktan ne yapmak istiyorsun? (örn: 2 litre kola alacağım / köfte yapmak istiyorum...)"
+          />
+          <button class="btn-primary" id="chat-send-btn">Gönder</button>
+        </div>
+      </div>
+
+      <!-- Sepet Bölümü -->
+      <div class="cart-container panel">
+        <div class="cart-header">
+          <div>
+            🧺 Sepet
+            <span class="sub">Seçtiğin ürünler burada birikir</span>
+          </div>
+        </div>
+        <div class="cart-body" id="cart-body">
+          <p class="cart-empty">Sepet boş.</p>
+        </div>
+        <div class="cart-footer" id="cart-footer">
+          <span id="cart-total-text">Toplam: 0.00 TL</span>
+          <button id="cart-analyze-btn" class="btn-analyze" disabled>
+            Sepeti Analiz Et
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="chat.js"></script>
+</body>
+</html>

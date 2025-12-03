@@ -1,0 +1,7 @@
+#databaesi ignorela
+data/market.db
+
+__pycache__/
+venv/
+
+.env
